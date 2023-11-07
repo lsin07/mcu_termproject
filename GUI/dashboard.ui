@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1024</width>
+    <width>640</width>
     <height>480</height>
    </rect>
   </property>
@@ -28,6 +28,9 @@
   <property name="layoutDirection">
    <enum>Qt::LeftToRight</enum>
   </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: rgb(50, 50, 50)</string>
+  </property>
   <property name="dockNestingEnabled">
    <bool>false</bool>
   </property>
@@ -35,10 +38,10 @@
    <widget class="QLabel" name="label_blinker_left">
     <property name="geometry">
      <rect>
-      <x>300</x>
+      <x>170</x>
       <y>50</y>
-      <width>171</width>
-      <height>71</height>
+      <width>50</width>
+      <height>50</height>
      </rect>
     </property>
     <property name="font">
@@ -46,29 +49,14 @@
       <pointsize>36</pointsize>
      </font>
     </property>
-    <property name="text">
-     <string notr="true">None</string>
-    </property>
-    <property name="wordWrap">
-     <bool>false</bool>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_blinker_right">
-    <property name="geometry">
-     <rect>
-      <x>600</x>
-      <y>50</y>
-      <width>171</width>
-      <height>71</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>36</pointsize>
-     </font>
+    <property name="styleSheet">
+     <string notr="true">color: white</string>
     </property>
     <property name="text">
-     <string notr="true">None</string>
+     <string notr="true"/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="resources.qrc">:/resources/resources/left_arrow_off.png</pixmap>
     </property>
     <property name="wordWrap">
      <bool>false</bool>
@@ -77,10 +65,69 @@
    <widget class="QLabel" name="label_gear">
     <property name="geometry">
      <rect>
-      <x>440</x>
-      <y>320</y>
-      <width>171</width>
+      <x>230</x>
+      <y>30</y>
+      <width>181</width>
       <height>71</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>24</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgba(0, 0, 0, 0%);
+color: white;</string>
+    </property>
+    <property name="text">
+     <string notr="true">None</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+    <property name="wordWrap">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_speedometer_digits">
+    <property name="geometry">
+     <rect>
+      <x>190</x>
+      <y>80</y>
+      <width>261</width>
+      <height>71</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>24</pointsize>
+     </font>
+    </property>
+    <property name="autoFillBackground">
+     <bool>false</bool>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgba(0, 0, 0, 0%);
+color: white;</string>
+    </property>
+    <property name="text">
+     <string notr="true">None</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+    <property name="wordWrap">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_blinker_right">
+    <property name="geometry">
+     <rect>
+      <x>420</x>
+      <y>50</y>
+      <width>50</width>
+      <height>50</height>
      </rect>
     </property>
     <property name="font">
@@ -88,31 +135,47 @@
       <pointsize>36</pointsize>
      </font>
     </property>
+    <property name="styleSheet">
+     <string notr="true">color: white</string>
+    </property>
     <property name="text">
-     <string notr="true">None</string>
+     <string notr="true"/>
+    </property>
+    <property name="pixmap">
+     <pixmap>resources/right_arrow_off.png</pixmap>
     </property>
     <property name="wordWrap">
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QLCDNumber" name="lcd_speedometer">
+   <widget class="QLabel" name="label_speedometer_analog">
     <property name="geometry">
      <rect>
-      <x>370</x>
-      <y>210</y>
-      <width>261</width>
-      <height>71</height>
+      <x>0</x>
+      <y>160</y>
+      <width>640</width>
+      <height>411</height>
      </rect>
     </property>
-    <property name="digitCount">
-     <number>8</number>
+    <property name="text">
+     <string/>
     </property>
-    <property name="value" stdset="0">
-     <double>123.000000000000000</double>
+    <property name="pixmap">
+     <pixmap resource="resources.qrc">:/resources/resources/speedometer.png</pixmap>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
     </property>
    </widget>
+   <zorder>label_speedometer_analog</zorder>
+   <zorder>label_blinker_left</zorder>
+   <zorder>label_gear</zorder>
+   <zorder>label_speedometer_digits</zorder>
+   <zorder>label_blinker_right</zorder>
   </widget>
  </widget>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

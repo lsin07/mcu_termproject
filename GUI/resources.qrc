@@ -1,0 +1,9 @@
+<RCC>
+  <qresource prefix="resources">
+    <file>resources/speedometer.png</file>
+    <file>resources/left_arrow_off.png</file>
+    <file>resources/left_arrow_on.png</file>
+    <file>resources/right_arrow_off.png</file>
+    <file>resources/right_arrow_on.png</file>
+  </qresource>
+</RCC>
