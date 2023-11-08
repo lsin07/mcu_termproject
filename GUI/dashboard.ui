@@ -152,10 +152,16 @@ color: white;</string>
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>160</y>
+      <y>70</y>
       <width>640</width>
-      <height>411</height>
+      <height>640</height>
      </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
     </property>
     <property name="text">
      <string/>
