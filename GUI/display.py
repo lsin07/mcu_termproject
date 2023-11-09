@@ -27,6 +27,7 @@ class Dashboard(QMainWindow, Ui_DashBoard):
         self.transform_speedometer_rotate = QTransform()
         self.pixmap_speedometer = QPixmap(".\\resources/speedometer.png")
         self.label_speedometer_analog.setPixmap(self.pixmap_speedometer)
+        self.label_speedometer_bg.setPixmap(QPixmap(".\\resources/speedometer_bg.png"))
 
     def UART_action(self):
         try:

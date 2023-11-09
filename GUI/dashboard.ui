@@ -39,7 +39,7 @@
     <property name="geometry">
      <rect>
       <x>170</x>
-      <y>50</y>
+      <y>30</y>
       <width>50</width>
       <height>50</height>
      </rect>
@@ -66,7 +66,7 @@
     <property name="geometry">
      <rect>
       <x>230</x>
-      <y>30</y>
+      <y>10</y>
       <width>181</width>
       <height>71</height>
      </rect>
@@ -94,7 +94,7 @@ color: white;</string>
     <property name="geometry">
      <rect>
       <x>190</x>
-      <y>80</y>
+      <y>60</y>
       <width>261</width>
       <height>71</height>
      </rect>
@@ -125,7 +125,7 @@ color: white;</string>
     <property name="geometry">
      <rect>
       <x>420</x>
-      <y>50</y>
+      <y>30</y>
       <width>50</width>
       <height>50</height>
      </rect>
@@ -152,7 +152,7 @@ color: white;</string>
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>70</y>
+      <y>40</y>
       <width>640</width>
       <height>640</height>
      </rect>
@@ -173,11 +173,31 @@ color: white;</string>
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
+   <widget class="QLabel" name="label_speedometer_bg">
+    <property name="geometry">
+     <rect>
+      <x>110</x>
+      <y>150</y>
+      <width>420</width>
+      <height>300</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background: transparent</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap>resources/speedometer_bg.png</pixmap>
+    </property>
+   </widget>
    <zorder>label_speedometer_analog</zorder>
    <zorder>label_blinker_left</zorder>
    <zorder>label_gear</zorder>
    <zorder>label_speedometer_digits</zorder>
    <zorder>label_blinker_right</zorder>
+   <zorder>label_speedometer_bg</zorder>
   </widget>
  </widget>
  <resources>
