@@ -1,11 +1,15 @@
-import serial
+from serial import Serial, serialutil
 from dashboard import Ui_DashBoard
 from PyQt6.QtCore import QTimer, Qt
 from PyQt6.QtWidgets import QApplication, QMainWindow
 from PyQt6.QtGui import QPixmap, QTransform
 
 port = 'COM7'
-s_s32k = serial.Serial(port=port, timeout=0.15)
+try:
+    s_s32k = Serial(port=port, timeout=0.15)
+except serialutil.SerialException:
+    print("Connection to port " + port + " failed.")
+    exit(1)
 
 class Dashboard(QMainWindow, Ui_DashBoard):
 
@@ -25,8 +29,10 @@ class Dashboard(QMainWindow, Ui_DashBoard):
         self.label_speedometer_analog.setPixmap(self.pixmap_speedometer)
 
     def UART_action(self):
-        data = int.from_bytes(s_s32k.read(size=4))
-        (blinker, gear, speed, errorNo) = self.UART_input_parser(data)
+        try:
+            (blinker, gear, speed, errorNo) = self.UART_input_parser(int.from_bytes(s_s32k.read(size=4)))
+        except serialutil.SerialException:
+            (blinker, gear, speed, errorNo) = (0, 0, 0, 4)
 
         self.transform_speedometer_rotate.reset()
 
@@ -37,9 +43,12 @@ class Dashboard(QMainWindow, Ui_DashBoard):
             self.label_gear.setText("E2")
             self.label_speedometer_digits.setText("GEAR")
         # TODO: main.c에 패리티 비트 구현하기.
-        # if errorNo == 3: # invalid gear input
+        # if errorNo == 3: # invalid parity
         #     self.label_gear.setText("E3")
         #     self.label_speedometer_digits.setText("PARITY")
+        elif errorNo == 4: # connection lost
+            self.label_gear.setText("E4")
+            self.label_speedometer_digits.setText("CONN LOST")
         else:
             # speedometer
             self.label_speedometer_digits.setText(str(int(speed)) + " km/h")

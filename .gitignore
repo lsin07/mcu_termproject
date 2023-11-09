@@ -4,3 +4,4 @@
 !.gitignore
 !/docs/
 !main.c
+*.pyc
