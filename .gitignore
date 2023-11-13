@@ -1,7 +1,21 @@
+# ingore everything
 /*
-!/GUI/
+
+# except below:
+# Documents and .gitignore file
 !README.md
 !.gitignore
 !/docs/
-!main.c
+
+# GUI codes and resources, excluding pycache files
+!/GUI/
 *.pyc
+
+# C source code
+!main.c
+
+# required libraries
+!LPUART*
+!ADC*
+!clocks_and_modes*
+!init*
