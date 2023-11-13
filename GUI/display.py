@@ -4,7 +4,9 @@ from PyQt6.QtCore import QTimer, Qt
 from PyQt6.QtWidgets import QApplication, QMainWindow
 from PyQt6.QtGui import QPixmap, QTransform
 
+# 여기에 포트 번호 입력
 port = 'COM7'
+
 try:
     s_s32k = Serial(port=port, timeout=0.15)
 except serialutil.SerialException:
