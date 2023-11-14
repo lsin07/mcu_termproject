@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import QApplication, QMainWindow
 from PyQt6.QtGui import QPixmap, QTransform
 
 # 여기에 포트 번호 입력
-port = 'COM7'
+port = 'COM13'
 
 try:
     s_s32k = Serial(port=port, timeout=0.15)
@@ -45,10 +45,6 @@ class Dashboard(QMainWindow, Ui_DashBoard):
         elif errorNo == 2: # invalid gear input
             self.label_gear.setText("E2")
             self.label_speedometer_digits.setText("GEAR")
-        # TODO: main.c에 패리티 비트 구현하기.
-        # if errorNo == 3: # invalid parity
-        #     self.label_gear.setText("E3")
-        #     self.label_speedometer_digits.setText("PARITY")
         elif errorNo == 4: # connection lost
             self.label_gear.setText("E4")
             self.label_speedometer_digits.setText("CONN LOST")
@@ -80,21 +76,13 @@ class Dashboard(QMainWindow, Ui_DashBoard):
 
         blinker = (d_in & 0b110) >> 1                   # bit 1-2: blinker
         gear = (d_in & 0b11000) >> 3                    # bit 3-4: gear
-        speed = (d_in & 0b111111111100000) >> 5         # bit 5-14: speed
+        speed = (d_in & 0x7FE0) >> 5         # bit 5-14: speed
 
         if d_in == 0: errorNo = 1                       # errno 1: No signal
         elif gear == 0: errorNo = 2                     # errno 2: invalid gear input
-        elif self.parityCheck(d_in) != 0: errorNo = 3   # errno 3: invalid parity
         else: errorNo = 0                               # errno 0: No error
 
         return (blinker, gear, speed, errorNo)
-    
-    def parityCheck(self, x):
-        res = 0
-        while x:
-            res ^= x & 1
-            x >>= 1
-        return res
     
     def getSpeedometerDeg(self, speed):
         # 회전 각도: 250 ~ 470
