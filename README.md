@@ -1,4 +1,4 @@
-# mcu_termproject
+# Integrated Automotive Controller and Cluster Display System
 2023 2학기 마이크로프로세서설계실험 term project
 
 ## 주제 선정 동기
