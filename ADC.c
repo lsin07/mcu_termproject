@@ -107,6 +107,6 @@ uint32_t read_adc_chx(void)
 {
   uint16_t adc_result=0;
   adc_result=ADC0->R[0];      					/* For SW trigger mode, R[0] is used 	*/
-  return  (uint32_t) ((5000*adc_result)/0xFFF); /* Convert result to mv for 0-5V range */
+  return  (uint32_t)adc_result; /* Convert result to mv for 0-5V range */
 }
 

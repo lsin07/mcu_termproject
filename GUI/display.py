@@ -50,7 +50,7 @@ class Dashboard(QMainWindow, Ui_DashBoard):
             self.label_speedometer_digits.setText("CONN LOST")
         else:
             # speedometer
-            self.label_speedometer_digits.setText(str(int(speed)) + " km/h")
+            self.label_speedometer_digits.setText(str(round(speed * 0.00739, 2)) + " m/min") # 0.00739 = 7.56 / 1023
             self.transform_speedometer_rotate.rotate(self.getSpeedometerDeg(int(speed)))
             self.label_speedometer_analog.setPixmap(self.pixmap_speedometer.transformed(self.transform_speedometer_rotate, Qt.TransformationMode.SmoothTransformation))
 
@@ -76,7 +76,7 @@ class Dashboard(QMainWindow, Ui_DashBoard):
 
         blinker = (d_in & 0b110) >> 1                   # bit 1-2: blinker
         gear = (d_in & 0b11000) >> 3                    # bit 3-4: gear
-        speed = (d_in & 0x7FE0) >> 5         # bit 5-14: speed
+        speed = (d_in & 0x7FE0) >> 5                    # bit 5-14: speed
 
         if d_in == 0: errorNo = 1                       # errno 1: No signal
         elif gear == 0: errorNo = 2                     # errno 2: invalid gear input

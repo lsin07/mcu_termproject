@@ -17,4 +17,7 @@
 # required libraries
 !LPUART*
 !ADC*
+!PWM*
 !clocks_and_modes*
+!types_and_commands.h
+!init*
