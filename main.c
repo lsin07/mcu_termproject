@@ -7,17 +7,17 @@
 #include "types_and_commands.h"
 
 /*
-    Pin			Name			Type				Connect With
+    Pin         Name            Type                Connect With
     ───────────────────────────────────────────────────────────────
-    B4, B5		DC Motor		PWMOUT FTM0CH4/5	DC_IN1, DC_IN2
-    C8			Gear Button		DIN					SW3
-    C9, C10		Blinker Button	DIN					SW5, SW1
-    C15			Potentiometer	ADCIN ADC0CH13		VR
-    D5			UWave Trig		DOUT				uWAVE TRIG
-    D6			UWave Echo		DIN					uWAVE ECHO
-    D7			Buzzer			DOUT				BUZZER
-    D8, D9		Blinker Lamp	DOUT				LED8, LED1
-    D10			Piezo			DOUT				PIEZO
+    B4, B5      DC Motor        PWMOUT FTM0CH4/5    DC_IN1, DC_IN2
+    C8          Gear Button     DIN                 SW3
+    C9, C10     Blinker Button  DIN                 SW5, SW1
+    C15         Potentiometer   ADCIN ADC0CH13      VR
+    D5          UWave Trig      DOUT                uWAVE TRIG
+    D6          UWave Echo      DIN                 uWAVE ECHO
+    D7          Buzzer          DOUT                BUZZER
+    D8, D9      Blinker Lamp    DOUT                LED8, LED1
+    D10         Piezo           DOUT                PIEZO
 */
 
 void blinker_control(void);
