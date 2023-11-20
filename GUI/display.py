@@ -74,9 +74,9 @@ class Dashboard(QMainWindow, Ui_DashBoard):
 
     def UART_input_parser(self, d_in):
 
-        blinker = (d_in & 0b110) >> 1                   # bit 1-2: blinker
-        gear = (d_in & 0b11000) >> 3                    # bit 3-4: gear
-        speed = (d_in & 0x7FE0) >> 5                    # bit 5-14: speed
+        blinker = (d_in & 0b1100) >> 2                  # bit 2-3: blinker
+        gear = (d_in & 0b110000) >> 4                   # bit 4-5: gear
+        speed = (d_in & 0xFFC0) >> 6                    # bit 6-15: speed
 
         if d_in == 0: errorNo = 1                       # errno 1: No signal
         elif gear == 0: errorNo = 2                     # errno 2: invalid gear input

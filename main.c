@@ -12,7 +12,10 @@
     B4, B5      DC Motor        PWMOUT FTM0CH4/5    DC_IN1, DC_IN2
     C8          Gear Button     DIN                 SW3
     C9, C10     Blinker Button  DIN                 SW5, SW1
+    C11         Lamp Button     DIN                 SW4
     C15         Potentiometer   ADCIN ADC0CH13      VR
+    C16         Cds             ADCIN ADC0CH14      CDS
+    D1 ~ 4      Lights          DOUT                LED3 ~ 6
     D5          UWave Trig      DOUT                uWAVE TRIG
     D6          UWave Echo      DIN                 uWAVE ECHO
     D7          Buzzer          DOUT                BUZZER
@@ -33,12 +36,15 @@ int uwave_high = 0;
 int buzzer_counter = 0;
 
 _GEAR_TYPE gear = P;
-_BLINKER_TYPE blinker;		 // determines whether the blinker lamps are on or off
-_BLINKER_TYPE blinker_isSet; // determines whether the blinker is set or not
+_LAMP_TYPE lamp_mode = OFF; // which lamp mode is set
+_LAMP_TYPE lamp = OFF;      // which lamps to turn on
+int lamp_auto_trig_low, lamp_auto_trig_high;
+_BLINKER_TYPE blinker_isSet; // Is the blinker set or not
+_BLINKER_TYPE blinker;       // Are the blinker lamps on or off
 int blinker_counter;
 _UART_DATA_TYPE d_send;
 
-uint32_t adcResult;
+uint32_t vrResult, cdsResult;
 
 int main(void)
 {
@@ -58,35 +64,49 @@ int main(void)
 
     for (;;)
     {
+        // Read VR
         convertAdcChan(13);
         while (adc_complete() == 0)
             ;
-        adcResult = read_adc_chx();
+        vrResult = read_adc_chx();
+
+        // Read Cds
+        if (lamp_mode == AUTO)
+        {
+            convertAdcChan(14);
+            while (adc_complete() == 0)
+                ;
+            cdsResult = read_adc_chx();
+        }
 
         lamp_control();
 
+        // Generating PWM signal
         if (gear == P)
             FTM0_CH2_PWM_OFF;
         else if (gear == R)
-            FTM0_CH2_PWM(4000 + (double)(adcResult) * 0.9768); // 0.9768 = 4000 / 4095
+            FTM0_CH2_PWM(4000 + (double)(vrResult) * 0.9768); // 0.9768 = 4000 / 4095
         else if (gear == D)
-            FTM0_CH2_PWM(4000 - (double)(adcResult) * 0.9768); // 0.9768 = 4000 / 4095
+            FTM0_CH2_PWM(4000 - (double)(vrResult) * 0.9768); // 0.9768 = 4000 / 4095
     }
 }
 
 /* This ISR handles 100ms sync which triggers other functions, while sending data through UART */
 void LPIT0_Ch0_IRQHandler(void)
 {
-    lpit0_ch0_flag_counter++; /* Increment LPIT0 timeout counter */
+    lpit0_ch0_flag_counter++;
 
+    // Conducting 100ms synced tasks
     blinker_control();
     if (gear == R)
         buzzer_control();
 
+    // Generating UART data
+    d_send.elements.lamp = lamp;
     if (gear == P)
         d_send.elements.speed = 0;
     else
-        d_send.elements.speed = adcResult >> 2; // squashing 12 bit data into 10 bit
+        d_send.elements.speed = cdsResult >> 2; // squashing 12 bit data into 10 bit
     d_send.elements.gear = gear;
     d_send.elements.blinker = blinker.value;
     LPUART1_transmit_word(d_send.value);
@@ -132,9 +152,16 @@ void PORTC_IRQHandler(void)
     if (B_RIGHT_BUTTON_READ != 0) // blinker right
         blinker_isSet.elements.right ^= 1;
 
-    PORTC->PCR[8] |= PORT_PCR_ISF_MASK;	 // Port Control Register ISF bit '1' set
-    PORTC->PCR[9] |= PORT_PCR_ISF_MASK;	 // Port Control Register ISF bit '1' set
-    PORTC->PCR[10] |= PORT_PCR_ISF_MASK; // Port Control Register ISF bit '1' set
+    if (LAMP_BUTTON_READ != 0)
+    {
+        if (++lamp_mode > 3)
+            lamp_mode = OFF;
+    }
+
+    PORTC->PCR[8] |= PORT_PCR_ISF_MASK;
+    PORTC->PCR[9] |= PORT_PCR_ISF_MASK;
+    PORTC->PCR[10] |= PORT_PCR_ISF_MASK;
+    PORTC->PCR[11] |= PORT_PCR_ISF_MASK;
 }
 
 /* This function controls blinker timer.
@@ -166,7 +193,9 @@ void blinker_control(void)
 It will be running all the time. */
 void lamp_control(void)
 {
-    if (gear == P) {
+    // gear
+    if (gear == P)
+    {
         RED_LED_ON;
         GREEN_LED_OFF;
     }
@@ -181,16 +210,68 @@ void lamp_control(void)
         GREEN_LED_OFF;
     }
 
+    // lamp_mode
+    if (lamp_mode == HEAD_LAMP)
+        lamp = HEAD_LAMP;
+    else if (lamp_mode == POS_LAMP)
+        lamp = POS_LAMP;
+    else if (lamp_mode == AUTO)
+        /*  Conducts software Schmitt trigger debouncing
+            Centerd at: 1500, 2500
+            Offset: 300 */
+        if (lamp_auto_trig_high)
+        {
+            lamp = OFF;
+            if (cdsResult < 2200) // 2500 - 300
+                lamp_auto_trig_high = 0;
+            if (cdsResult < 1200) // 1500 - 300
+                lamp_auto_trig_low = 0;
+        }
+        else if (lamp_auto_trig_low)
+        {
+            lamp = POS_LAMP;
+            if (cdsResult > 2800) // 2500 + 300
+                lamp_auto_trig_high = 1;
+            if (cdsResult < 1200)
+                lamp_auto_trig_low = 0;
+        }
+        else
+        {
+            lamp = HEAD_LAMP;
+            if (cdsResult > 2800)
+                lamp_auto_trig_high = 1;
+            if (cdsResult > 1800) // 1500 + 300
+                lamp_auto_trig_low = 1;
+        }
+    else
+        lamp = OFF;
+
+    // lamp
+    switch (lamp)
+    {
+    case POS_LAMP:
+        HEAD_LAMP_OFF;
+        POS_LAMP_ON;
+        break;
+    case HEAD_LAMP:
+        HEAD_LAMP_ON;
+        POS_LAMP_ON;
+        break;
+    default:
+        HEAD_LAMP_OFF;
+        POS_LAMP_OFF;
+        break;
+    }
+
+    // blinker
     if (blinker.elements.left)
         B_LEFT_ON;
     else
         B_LEFT_OFF;
-
     if (blinker.elements.right)
         B_RIGHT_ON;
     else
         B_RIGHT_OFF;
-
     if (blinker.value != 0)
         PIEZO_ON;
     else

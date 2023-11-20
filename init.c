@@ -38,12 +38,18 @@ void PORT_init(void)
 	PORTC->PCR[10] |= PORT_PCR_MUX(1);
 	PORTC->PCR[10] |= (10 << 16);
 
+	/*	PTC11: Lamp SW
+		Connect With: SW4 */
+	PORTC->PCR[11] &= PORT_PCR_MUX(7);
+	PORTC->PCR[11] |= PORT_PCR_MUX(1);
+	PORTC->PCR[11] |= (10 << 16);
+
 	/* PTC12, PTC13: S32K144 Onboard SWs for debug purposes */
 	PORTC->PCR[12] &= PORT_PCR_MUX(7);
 	PORTC->PCR[12] |= PORT_PCR_MUX(1);
 	PORTC->PCR[13] &= PORT_PCR_MUX(7);
 	PORTC->PCR[13] |= PORT_PCR_MUX(1);
-	PTC->PDDR &= ~((1 << 8) | (1 << 9) | (1 << 10) | (1 << 12) | (1 << 13));
+	PTC->PDDR &= ~((1 << 8) | (1 << 9) | (1 << 10) | (1 << 11) | (1 << 12) | (1 << 13));
 
 	/*	PTC15: Potentiometer input (ADC_CH13)
 		Connect with: VR */
@@ -54,6 +60,17 @@ void PORT_init(void)
 	/* PTD0: Onboard blue LED */
 	// PORTD->PCR[0] &= PORT_PCR_MUX(7);
 	// PORTD->PCR[0] |= PORT_PCR_MUX(1);
+
+	/*	PTD1 ~ 4: Lamp
+		Connect with: LED3 ~ 6*/
+	PORTD->PCR[1] &= PORT_PCR_MUX(7);
+	PORTD->PCR[1] |= PORT_PCR_MUX(1);
+	PORTD->PCR[2] &= PORT_PCR_MUX(7);
+	PORTD->PCR[2] |= PORT_PCR_MUX(1);
+	PORTD->PCR[3] &= PORT_PCR_MUX(7);
+	PORTD->PCR[3] |= PORT_PCR_MUX(1);
+	PORTD->PCR[4] &= PORT_PCR_MUX(7);
+	PORTD->PCR[4] |= PORT_PCR_MUX(1);
 
 	/*	PTD5: uwave TRIG
 		Connect with: uWAVE TRIG.*/
@@ -90,7 +107,7 @@ void PORT_init(void)
 	PORTD->PCR[15] |= PORT_PCR_MUX(1);
 	PORTD->PCR[16] &= PORT_PCR_MUX(7);
 	PORTD->PCR[16] |= PORT_PCR_MUX(1);
-	PTD->PDDR |= (1 << 5) | (1 << 7) | (1 << 8) | (1 << 9) | (1 << 10) | (1 << 15) | (1 << 16);
+	PTD->PDDR |= (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) | (1 << 7) | (1 << 8) | (1 << 9) | (1 << 10) | (1 << 15) | (1 << 16);
 	PTD->PDDR &= ~((1 << 6));
 }
 

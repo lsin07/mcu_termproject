@@ -5,6 +5,7 @@
 #define GEAR_BUTTON_READ        (PORTC->ISFR & (1 << 8))
 #define B_LEFT_BUTTON_READ      (PORTC->ISFR & (1 << 9))
 #define B_RIGHT_BUTTON_READ     (PORTC->ISFR & (1 << 10))
+#define LAMP_BUTTON_READ        (PORTC->ISFR & (1 << 11))
 #define FTM0_CH2_PWM_OFF        FTM0->SC &= ~(FTM_SC_PWMEN4_MASK | FTM_SC_PWMEN5_MASK)
 #define BLUE_LED_ON             PTD->PCOR |= 1 | (1 << 0)
 #define BLUE_LED_OFF            PTD->PSOR |= 1 | (1 << 0)
@@ -24,6 +25,10 @@
 #define UWAVE_TRIG_SEND         PTD->PSOR |= (1 << 5)
 #define UWAVE_TRIG_STOP         PTD->PCOR |= (1 << 5)
 #define UWAVE_ECHO_READ         PTD->PDIR & (1 << 6)
+#define POS_LAMP_ON             PTD->PCOR |= ((1 << 1) | (1 << 4))
+#define POS_LAMP_OFF            PTD->PSOR |= ((1 << 1) | (1 << 4))
+#define HEAD_LAMP_ON            PTD->PCOR |= ((1 << 2) | (1 << 3))
+#define HEAD_LAMP_OFF           PTD->PSOR |= ((1 << 2) | (1 << 3))
 
 /*
 _GEAR_TYPE:
@@ -36,6 +41,19 @@ typedef enum
     R,
     D
 } _GEAR_TYPE;
+
+/*
+_LAMP_TYPE:
+enum type
+enum mapped as OFF = 0, POS_LAMP = 1, HEAD_LAMP = 2, AUTO = 3
+*/
+typedef enum
+{
+    OFF = 0,
+    POS_LAMP,
+    HEAD_LAMP,
+    AUTO
+} _LAMP_TYPE;
 
 
 /*
@@ -65,7 +83,7 @@ typedef union
     uint32_t value;
     struct
     {
-        uint32_t __reserved : 1; // unused, just for bit spacing
+        uint32_t lamp : 2;
         uint32_t blinker : 2;
         uint32_t gear : 2;
         uint32_t speed : 10;
