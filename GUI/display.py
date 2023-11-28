@@ -33,9 +33,9 @@ class Dashboard(QMainWindow, Ui_DashBoard):
 
     def UART_action(self):
         try:
-            (blinker, gear, speed, errorNo) = self.UART_input_parser(int.from_bytes(s_s32k.read(size=4)))
+            (lamp, blinker, gear, speed, prox, errorNo) = self.UART_input_parser(int.from_bytes(s_s32k.read(size=4)))
         except serialutil.SerialException:
-            (blinker, gear, speed, errorNo) = (0, 0, 0, 4)
+            (lamp, blinker, gear, speed, prox, errorNo) = (0, 0, 0, 0, 0, 4)
 
         self.transform_speedometer_rotate.reset()
 
@@ -49,8 +49,19 @@ class Dashboard(QMainWindow, Ui_DashBoard):
             self.label_gear.setText("E4")
             self.label_speedometer_digits.setText("CONN LOST")
         else:
+            # lamp
+            if lamp == 0:
+                self.label_poslight.setPixmap(QPixmap(".\\resources/poslight_off.png"))
+                self.label_light.setPixmap(QPixmap(".\\resources/light_off.png"))
+            elif lamp == 1:
+                self.label_poslight.setPixmap(QPixmap(".\\resources/poslight_on.png"))
+                self.label_light.setPixmap(QPixmap(".\\resources/light_off.png"))
+            elif lamp == 2:
+                self.label_poslight.setPixmap(QPixmap(".\\resources/poslight_on.png"))
+                self.label_light.setPixmap(QPixmap(".\\resources/light_on.png"))
+
             # speedometer
-            self.label_speedometer_digits.setText(str(round(speed * 0.00739, 2)) + " m/min") # 0.00739 = 7.56 / 1023
+            self.label_speedometer_digits.setText(str("{:.2f} m/min").format(round(speed * 0.00739, 2))) # 0.00739 = 7.56 / 1023
             self.transform_speedometer_rotate.rotate(self.getSpeedometerDeg(int(speed)))
             self.label_speedometer_analog.setPixmap(self.pixmap_speedometer.transformed(self.transform_speedometer_rotate, Qt.TransformationMode.SmoothTransformation))
 
@@ -71,18 +82,32 @@ class Dashboard(QMainWindow, Ui_DashBoard):
                 self.label_gear.setText("R")
             elif gear == 0b11:
                 self.label_gear.setText("D")
+            
+            # proximity warning
+            if prox == 1:
+                self.widget_prox_label_text.setText("전방 추돌 주의")
+                self.widget_prox_label_icon.setPixmap(QPixmap(".\\resources/prox.png"))
+                self.widget_prox.show()
+            elif prox == 2:
+                self.widget_prox_label_text.setText("전방 추돌 경고")
+                self.widget_prox_label_icon.setPixmap(QPixmap(".\\resources/warning.png"))
+                self.widget_prox.show()
+            else:
+                self.widget_prox.hide()
 
     def UART_input_parser(self, d_in):
 
+        lamp = (d_in & 0b11)                            # bit 0-1: light
         blinker = (d_in & 0b1100) >> 2                  # bit 2-3: blinker
         gear = (d_in & 0b110000) >> 4                   # bit 4-5: gear
         speed = (d_in & 0xFFC0) >> 6                    # bit 6-15: speed
+        prox = (d_in & 0x30000) >> 16
 
         if d_in == 0: errorNo = 1                       # errno 1: No signal
         elif gear == 0: errorNo = 2                     # errno 2: invalid gear input
         else: errorNo = 0                               # errno 0: No error
 
-        return (blinker, gear, speed, errorNo)
+        return (lamp, blinker, gear, speed, prox, errorNo)
     
     def getSpeedometerDeg(self, speed):
         # 회전 각도: 250 ~ 470

@@ -1,9 +1,15 @@
 <RCC>
   <qresource prefix="resources">
+    <file>resources/warning.png</file>
+    <file>resources/prox.png</file>
+    <file>resources/poslight_off.png</file>
+    <file>resources/poslight_on.png</file>
+    <file>resources/light_off.png</file>
+    <file>resources/light_on.png</file>
+    <file>resources/speedometer_bg.png</file>
     <file>resources/speedometer.png</file>
     <file>resources/left_arrow_off.png</file>
     <file>resources/left_arrow_on.png</file>
-    <file>resources/speedometer_bg.png</file>
     <file>resources/right_arrow_off.png</file>
     <file>resources/right_arrow_on.png</file>
   </qresource>

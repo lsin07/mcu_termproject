@@ -87,6 +87,7 @@ typedef union
         uint32_t blinker : 2;
         uint32_t gear : 2;
         uint32_t speed : 10;
+        uint32_t prox : 2;
     } elements;
 } _UART_DATA_TYPE;
 

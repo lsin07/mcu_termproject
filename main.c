@@ -23,9 +23,14 @@
     D10         Piezo           DOUT                PIEZO
 */
 
-void blinker_control(void);
-void lamp_control(void);
-void buzzer_control(void);
+void SWM_Blinker(void);
+void SWM_Lamp(void);
+void SWM_Alarm(void);
+void SWM_Sensor(void);
+void SWM_UART(void);
+void SWM_Throttle(void);
+void SWM_Panel(void);
+void SWM_ProxWarning(void);
 
 int lpit0_ch0_flag_counter = 0;
 int lpit0_ch1_flag_counter = 0;
@@ -34,12 +39,14 @@ int uwave_counter = 0;
 int uwave_distance = 0;
 int uwave_high = 0;
 int buzzer_counter = 0;
+int proximity_warning = 0;
+int proximity_counter = 0;
 
 _GEAR_TYPE gear = P;
 _LAMP_TYPE lamp_mode = OFF; // which lamp mode is set
 _LAMP_TYPE lamp = OFF;      // which lamps to turn on
 int lamp_auto_trig_low, lamp_auto_trig_high;
-_BLINKER_TYPE blinker_isSet; // Is the blinker set or not
+_BLINKER_TYPE blinker_mode; // Is the blinker set or not
 _BLINKER_TYPE blinker;       // Are the blinker lamps on or off
 int blinker_counter;
 _UART_DATA_TYPE d_send;
@@ -64,99 +71,38 @@ int main(void)
 
     for (;;)
     {
-        // Read VR
-        convertAdcChan(13);
-        while (adc_complete() == 0)
-            ;
-        vrResult = read_adc_chx();
-
-        // Read Cds
-        if (lamp_mode == AUTO)
-        {
-            convertAdcChan(14);
-            while (adc_complete() == 0)
-                ;
-            cdsResult = read_adc_chx();
-        }
-
-        lamp_control();
-
-        // Generating PWM signal
-        if (gear == P)
-            FTM0_CH2_PWM_OFF;
-        else if (gear == R)
-            FTM0_CH2_PWM(4000 + (double)(vrResult) * 0.9768); // 0.9768 = 4000 / 4095
-        else if (gear == D)
-            FTM0_CH2_PWM(4000 - (double)(vrResult) * 0.9768); // 0.9768 = 4000 / 4095
+        // Conducting continuous SWMs
+        SWM_Lamp();
+        SWM_Throttle();
     }
 }
 
-/* This ISR handles 100ms sync which triggers other functions, while sending data through UART */
 void LPIT0_Ch0_IRQHandler(void)
 {
     lpit0_ch0_flag_counter++;
 
-    // Conducting 100ms synced tasks
-    blinker_control();
-    if (gear == R)
-        buzzer_control();
-
-    // Generating UART data
-    d_send.elements.lamp = lamp;
-    if (gear == P)
-        d_send.elements.speed = 0;
-    else
-        d_send.elements.speed = cdsResult >> 2; // squashing 12 bit data into 10 bit
-    d_send.elements.gear = gear;
-    d_send.elements.blinker = blinker.value;
-    LPUART1_transmit_word(d_send.value);
-
+    // Conducting 100ms synced SWMs
+    SWM_Blinker();
+    SWM_Alarm();
+    SWM_UART();
+    SWM_ProxWarning();
     LPIT0->MSR |= LPIT_MSR_TIF0_MASK; /* Clear LPIT0 timer flag 0 */
 }
 
-/* This ISR handles uwave sensor.
-The interrupt signals are made every 10us. */
 void LPIT0_Ch1_IRQHandler(void)
 {
     lpit0_ch1_flag_counter++;
 
-    if (uwave_counter == 0)
-        UWAVE_TRIG_SEND;
-    else if (uwave_counter == 2)
-        UWAVE_TRIG_STOP;
-    if (UWAVE_ECHO_READ)
-        uwave_high++;
-
-    uwave_counter++;
-    if (uwave_counter >= 6000) // 10us * 6000 = 60ms
-    {
-        uwave_counter = 0;
-        uwave_distance = uwave_high;
-        uwave_high = 0;
-    }
+    // Conducting 10us synced SWMs
+    SWM_Sensor();
     LPIT0->MSR |= LPIT_MSR_TIF1_MASK;
 }
 
 /* This ISR handles panel button input. */
 void PORTC_IRQHandler(void)
 {
-    if (GEAR_BUTTON_READ != 0) // gear
-    {
-        if (++gear > 3)
-            gear = P;
-    }
-
-    if (B_LEFT_BUTTON_READ != 0) // blinker left
-        blinker_isSet.elements.left ^= 1;
-
-    if (B_RIGHT_BUTTON_READ != 0) // blinker right
-        blinker_isSet.elements.right ^= 1;
-
-    if (LAMP_BUTTON_READ != 0)
-    {
-        if (++lamp_mode > 3)
-            lamp_mode = OFF;
-    }
+    // Conducting GPIO input interrupt connected SWMs
+    SWM_Panel();
 
     PORTC->PCR[8] |= PORT_PCR_ISF_MASK;
     PORTC->PCR[9] |= PORT_PCR_ISF_MASK;
@@ -164,11 +110,9 @@ void PORTC_IRQHandler(void)
     PORTC->PCR[11] |= PORT_PCR_ISF_MASK;
 }
 
-/* This function controls blinker timer.
-It is synced with LPIT0_CH0 and will be executed every 100ms.*/
-void blinker_control(void)
+void SWM_Blinker(void)
 {
-    if (blinker_isSet.value == 0)
+    if (blinker_mode.value == 0)
     {
         blinker_counter = 0;
         blinker.value = 0;
@@ -177,9 +121,9 @@ void blinker_control(void)
     {
         if (blinker_counter < 5)
         {
-            if (blinker_isSet.elements.left)
+            if (blinker_mode.elements.left)
                 blinker.elements.left = 1;
-            if (blinker_isSet.elements.right)
+            if (blinker_mode.elements.right)
                 blinker.elements.right = 1;
         }
         else
@@ -189,12 +133,19 @@ void blinker_control(void)
     }
 }
 
-/* This function controls lamps and piezoelectric speaker.
-It will be running all the time. */
-void lamp_control(void)
+void SWM_Lamp(void)
 {
+    // Read Cds
+    if (lamp_mode == AUTO)
+    {
+        convertAdcChan(14);
+        while (adc_complete() == 0)
+            ;
+        cdsResult = read_adc_chx();
+    }
+
     // gear
-    if (gear == P)
+    if (gear == P || proximity_warning > 1)
     {
         RED_LED_ON;
         GREEN_LED_OFF;
@@ -278,22 +229,148 @@ void lamp_control(void)
         PIEZO_OFF;
 }
 
-/* This function controls buzzer.
-It is synced with LPIT0_CH0 and will be executed every 100ms only if the gear is set to reverse.*/
-void buzzer_control(void)
+void SWM_Alarm(void)
 {
-    if (uwave_distance < 100)
-        BUZZER_ON;
-    else if (uwave_distance < 200)
-        BUZZER_TOGGLE;
-    else if (uwave_distance < 300)
+    if (gear == R)
     {
-        if (++buzzer_counter > 2)
+        if (uwave_distance < 80)
+            BUZZER_ON;
+        else if (uwave_distance < 160)
+            BUZZER_TOGGLE;
+        else if (uwave_distance < 240)
+        {
+            if (++buzzer_counter > 2)
+            {
+                BUZZER_TOGGLE;
+                buzzer_counter = 0;
+            }
+        }
+        else
+            BUZZER_OFF;
+    }
+    else if (proximity_warning > 0)
+    {
+        if (buzzer_counter > 0)
         {
             BUZZER_TOGGLE;
-            buzzer_counter = 0;
+            buzzer_counter--;
+        }
+        else
+            BUZZER_OFF;
+    }
+    else
+    {
+        buzzer_counter = 0;
+        BUZZER_OFF;
+    }
+}
+
+void SWM_UART(void)
+{
+    d_send.elements.lamp = lamp;
+    if (gear == P || proximity_warning == 2)
+        d_send.elements.speed = 0;
+    else
+        d_send.elements.speed = vrResult >> 2; // squashing 12 bit data into 10 bit
+    d_send.elements.gear = gear;
+    d_send.elements.blinker = blinker.value;
+    d_send.elements.prox = proximity_warning;
+    LPUART1_transmit_word(d_send.value);
+}
+
+void SWM_Sensor(void)
+{
+    if (gear == R || gear == D)
+    {
+        if (uwave_counter == 0)
+            UWAVE_TRIG_SEND;
+        else if (uwave_counter == 2)
+            UWAVE_TRIG_STOP;
+        if (UWAVE_ECHO_READ)
+            uwave_high++;
+
+        uwave_counter++;
+        if (uwave_counter >= 6000) // 10us * 6000 = 60ms
+        {
+            uwave_counter = 0;
+            uwave_distance = uwave_high;
+            uwave_high = 0;
+        }
+    }
+}
+
+void SWM_Throttle(void)
+{
+    // Read VR
+    convertAdcChan(13);
+    while (adc_complete() == 0)
+        ;
+    vrResult = read_adc_chx();
+
+    // Generating PWM signal
+    if (gear == P)
+        FTM0_CH2_PWM_OFF;
+    else if (gear == R)
+        FTM0_CH2_PWM(4000 + (double)(vrResult) * 0.9768); // 0.9768 = 4000 / 4095
+    else if (gear == D)
+    {
+        if (proximity_warning > 1)
+            FTM0_CH2_PWM(4000);
+        else
+            FTM0_CH2_PWM(4000 - (double)(vrResult) * 0.9768); // 0.9768 = 4000 / 4095
+    }
+}
+
+void SWM_Panel(void)
+{
+    if (GEAR_BUTTON_READ != 0) // gear
+    {
+        if (++gear > 3)
+            gear = P;
+    }
+
+    if (B_LEFT_BUTTON_READ != 0) // blinker left
+        blinker_mode.elements.left ^= 1;
+
+    if (B_RIGHT_BUTTON_READ != 0) // blinker right
+        blinker_mode.elements.right ^= 1;
+
+    if (LAMP_BUTTON_READ != 0)
+    {
+        if (++lamp_mode > 3)
+            lamp_mode = OFF;
+    }
+}
+
+void SWM_ProxWarning(void)
+{
+    if (gear == D)
+    {
+        if (uwave_distance < 80) {
+            if (proximity_counter > 5)
+            {
+                proximity_counter = 0;
+                blinker_mode.value = 3;
+                if (proximity_warning < 2)
+                    buzzer_counter = 8;
+                proximity_warning = 2;
+            }
+            else
+                proximity_counter++;
+        }
+        else if (uwave_distance < 160 && proximity_warning < 2)
+        {
+            if (proximity_warning == 0)
+                buzzer_counter = 4;
+            proximity_warning = 1;
+            proximity_counter = 0;
+        }
+        else if (proximity_warning < 2)
+        {
+            proximity_warning = 0;
+            proximity_counter = 0;
         }
     }
     else
-        BUZZER_OFF;
+        proximity_warning = 0;
 }
