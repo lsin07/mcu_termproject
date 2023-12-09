@@ -45,9 +45,10 @@ int proximity_counter = 0;
 _GEAR_TYPE gear = P;
 _LAMP_TYPE lamp_mode = OFF; // which lamp mode is set
 _LAMP_TYPE lamp = OFF;      // which lamps to turn on
-int lamp_auto_trig_low, lamp_auto_trig_high;
+int lamp_auto_trig_low = 0;
+int lamp_auto_trig_high = 1;
 _BLINKER_TYPE blinker_mode; // Is the blinker set or not
-_BLINKER_TYPE blinker;       // Are the blinker lamps on or off
+_BLINKER_TYPE blinker;      // Are the blinker lamps on or off
 int blinker_counter;
 _UART_DATA_TYPE d_send;
 
@@ -162,14 +163,18 @@ void SWM_Lamp(void)
     }
 
     // lamp_mode
-    if (lamp_mode == HEAD_LAMP)
+    switch (lamp_mode)
+    {
+    case HEAD_LAMP:
         lamp = HEAD_LAMP;
-    else if (lamp_mode == POS_LAMP)
+        break;
+    case POS_LAMP:
         lamp = POS_LAMP;
-    else if (lamp_mode == AUTO)
+        break;
+    case AUTO:
         /*  Conducts software Schmitt trigger debouncing
-            Centerd at: 1500, 2500
-            Offset: 300 */
+        Centerd at: 1500, 2500
+        Offset: 300 */
         if (lamp_auto_trig_high)
         {
             lamp = OFF;
@@ -194,8 +199,10 @@ void SWM_Lamp(void)
             if (cdsResult > 1800) // 1500 + 300
                 lamp_auto_trig_low = 1;
         }
-    else
+        break;
+    default:
         lamp = OFF;
+    }
 
     // lamp
     switch (lamp)
@@ -346,7 +353,8 @@ void SWM_ProxWarning(void)
 {
     if (gear == D)
     {
-        if (uwave_distance < 80) {
+        if (uwave_distance < 80)
+        {
             if (proximity_counter > 5)
             {
                 proximity_counter = 0;
