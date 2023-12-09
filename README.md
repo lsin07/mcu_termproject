@@ -5,4 +5,6 @@
 2023 2학기 마이크로프로세서설계실험 수업 Term Project 소스 코드입니다.  
 실행을 위해서는 S32K144EVB와 Keil uVision이 필요합니다.  
 
-GUI 프로그램 실행에 대해서는 [여기](https://github.com/lsin07/mcu_termproject/blob/main/GUI/README.md)를 참고해주세요.
+GUI 프로그램 실행에 대해서는 [여기](https://github.com/lsin07/mcu_termproject/blob/main/GUI/README.md)를 참고해주세요.  
+
+발표 자료 및 최종 보고서는 [docs](https://github.com/lsin07/mcu_termproject/tree/main/docs) 폴더에 포함되어 있습니다.
