@@ -42,15 +42,15 @@ int buzzer_counter = 0;
 int proximity_warning = 0;
 int proximity_counter = 0;
 
-_GEAR_TYPE gear = P;
-_LAMP_TYPE lamp_mode = OFF; // which lamp mode is set
-_LAMP_TYPE lamp = OFF;      // which lamps to turn on
+GEAR_TYPE gear = P;
+LAMP_TYPE lamp_mode = OFF; // which lamp mode is set
+LAMP_TYPE lamp = OFF;      // which lamps to turn on
 int lamp_auto_trig_low = 0;
 int lamp_auto_trig_high = 1;
-_BLINKER_TYPE blinker_mode; // Is the blinker set or not
-_BLINKER_TYPE blinker;      // Are the blinker lamps on or off
+BLINKER_TYPE blinker_mode; // Is the blinker set or not
+BLINKER_TYPE blinker;      // Are the blinker lamps on or off
 int blinker_counter;
-_UART_DATA_TYPE d_send;
+UART_DATA_TYPE d_send;
 
 uint32_t vrResult, cdsResult;
 

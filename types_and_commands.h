@@ -40,7 +40,7 @@ typedef enum
     P = 1,
     R,
     D
-} _GEAR_TYPE;
+} GEAR_TYPE;
 
 /*
 _LAMP_TYPE:
@@ -53,7 +53,7 @@ typedef enum
     POS_LAMP,
     HEAD_LAMP,
     AUTO
-} _LAMP_TYPE;
+} LAMP_TYPE;
 
 
 /*
@@ -70,7 +70,7 @@ typedef union
         uint8_t right : 1;
         uint8_t left : 1;
     } elements;
-} _BLINKER_TYPE;
+} BLINKER_TYPE;
 
 /*
 _UART_DATA_TYPE:
@@ -89,6 +89,6 @@ typedef union
         uint32_t speed : 10;
         uint32_t prox : 2;
     } elements;
-} _UART_DATA_TYPE;
+} UART_DATA_TYPE;
 
 #endif
